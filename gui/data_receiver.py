@@ -65,6 +65,7 @@ class DataReceiver:
 
                 obs = json.loads(payload.decode("utf-8"))
                 socketio.emit("obs_data", obs)
+                eventlet.sleep(0)
 
             except eventlet.Timeout:
                 continue

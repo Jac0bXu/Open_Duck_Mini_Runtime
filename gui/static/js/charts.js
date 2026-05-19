@@ -96,6 +96,12 @@ const targetChart = new Chart(
     makeBarChartConfig(JOINT_NAMES, i => COLORS[i % COLORS.length])
 );
 
+// Motor voltages bar chart
+const voltageChart = new Chart(
+    document.getElementById('chart-voltage'),
+    makeBarChartConfig(JOINT_NAMES, i => COLORS[i % COLORS.length])
+);
+
 // Gyro rolling line chart
 const gyroDatasets = makeRollingDatasets(3, ['X', 'Y', 'Z']);
 const gyroChart = new Chart(
@@ -134,6 +140,12 @@ function updateCharts(obs) {
         targetChart.update();
     }
 
+    // Motor voltages
+    if (obs.motor_voltages) {
+        voltageChart.data.datasets[0].data = obs.motor_voltages;
+        voltageChart.update();
+    }
+
     // IMU gyro
     if (obs.imu && obs.imu.gyro) {
         pushRolling(gyroChart, gyroDatasets, obs.imu.gyro);
@@ -159,4 +171,10 @@ function updateCharts(obs) {
             if (el) el.textContent = val.toFixed(3);
         });
     }
+}
+
+function updateVoltageChart(voltages) {
+    if (!voltages) return;
+    voltageChart.data.datasets[0].data = voltages;
+    voltageChart.update();
 }

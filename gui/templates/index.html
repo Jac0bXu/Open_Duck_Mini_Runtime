@@ -71,6 +71,7 @@
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-2">
                             <button class="btn btn-info btn-sm flex-fill" id="btn-check-bt" disabled>Check Bluetooth</button>
+                            <button class="btn btn-info btn-sm flex-fill" id="btn-check-voltage" disabled>Check Voltage</button>
                         </div>
                         <div class="d-flex gap-2 mb-2">
                             <button class="btn btn-warning btn-sm flex-fill" id="btn-turn-on" disabled>Turn On</button>
@@ -187,6 +188,15 @@
                                     <div class="col-4"><div class="cmd-box"><span class="cmd-label">Head P</span><span class="cmd-value" id="cmd-4">0.00</span></div></div>
                                     <div class="col-4"><div class="cmd-box"><span class="cmd-label">Head Y</span><span class="cmd-value" id="cmd-5">0.00</span></div></div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Motor Voltages -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card chart-card">
+                            <div class="card-header">Motor Voltages (V)</div>
+                            <div class="card-body">
+                                <canvas id="chart-voltage"></canvas>
                             </div>
                         </div>
                     </div>

@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 
@@ -177,6 +178,20 @@ def start_walk():
 
     cmd = " ".join(parts)
 
+    # Read voltages before starting walk (serial port is still free)
+    exit_code, out, err = ssh.exec_command(
+        f"cd {REMOTE_REPO_DIR} && python3 scripts/check_voltage_json.py",
+        timeout=10,
+    )
+    if exit_code == 0 and out:
+        try:
+            result = json.loads(out.strip().split("\n")[-1])
+            if "voltages" in result:
+                socketio.emit("voltage_data", {"voltages": result["voltages"]})
+                socketio.emit("log_data", {"data": f"Pre-walk voltages: {result['voltages']}"})
+        except (json.JSONDecodeError, IndexError):
+            pass
+
     socketio.emit("log_data", {"data": f"Starting walk: {cmd}"})
 
     def on_stdout(line):
@@ -217,7 +232,57 @@ def stop_walk():
     socketio.emit("walk_status", {"walking": False})
     socketio.emit("log_data", {"data": "Walk process stopped"})
 
+    # Read voltages after walk stops (serial port is free again)
+    import time; time.sleep(1)
+    exit_code, out, err = ssh.exec_command(
+        f"cd {REMOTE_REPO_DIR} && python3 scripts/check_voltage_json.py",
+        timeout=10,
+    )
+    if exit_code == 0 and out:
+        try:
+            result = json.loads(out.strip().split("\n")[-1])
+            if "voltages" in result:
+                socketio.emit("voltage_data", {"voltages": result["voltages"]})
+                socketio.emit("log_data", {"data": f"Post-walk voltages: {result['voltages']}"})
+        except (json.JSONDecodeError, IndexError):
+            pass
+
     return jsonify({"stopped": True})
+
+
+@api_bp.route("/api/check-voltage", methods=["POST"])
+def check_voltage():
+    ssh = get_ssh()
+    socketio = get_socketio()
+
+    if not ssh.is_connected:
+        return jsonify({"error": "Not connected to robot"}), 400
+
+    socketio.emit("log_data", {"data": "Reading motor voltages..."})
+
+    exit_code, out, err = ssh.exec_command(
+        f"cd {REMOTE_REPO_DIR} && python3 scripts/check_voltage_json.py",
+        timeout=10,
+    )
+
+    if exit_code != 0 or not out:
+        msg = err or "Failed to read voltages"
+        socketio.emit("log_data", {"data": f"Voltage check failed: {msg}"})
+        return jsonify({"error": msg}), 500
+
+    try:
+        result = json.loads(out.strip().split("\n")[-1])
+    except (json.JSONDecodeError, IndexError):
+        socketio.emit("log_data", {"data": f"Voltage parse error: {out}"})
+        return jsonify({"error": "Failed to parse voltage output"}), 500
+
+    if "error" in result:
+        socketio.emit("log_data", {"data": f"Voltage check error: {result['error']}"})
+        return jsonify({"error": result["error"]}), 500
+
+    socketio.emit("log_data", {"data": f"Voltages: {result['voltages']}"})
+    socketio.emit("voltage_data", {"voltages": result["voltages"]})
+    return jsonify({"voltages": result["voltages"]})
 
 
 @api_bp.route("/api/status", methods=["GET"])

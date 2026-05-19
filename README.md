@@ -180,3 +180,26 @@ Download the [latest policy checkpoint ](https://github.com/apirrone/Open_Duck_M
 - left and right triggers to control the left and right antennas
 - LB (new!) press and hold to increase the walking frequency, kind of a sprint mode 🙂
 ```
+
+## GUI Dashboard
+
+A web-based dashboard for remote control, monitoring, and policy deployment. Runs on your laptop and connects to the robot via SSH.
+
+### Start the dashboard
+
+```bash
+pip install -r gui/requirements.txt
+python3 -c "import sys, os; sys.path.insert(0, '.'); from gui.app import create_app; app, socketio = create_app(); socketio.run(app, host='0.0.0.0', port=5001, debug=False)"
+```
+
+Open http://localhost:5001 in your browser.
+
+### Features
+
+- **SSH Connection** — Connect to the robot by IP, manage multiple saved connections
+- **Policy Upload** — Upload ONNX policy files directly to the robot
+- **Robot Controls** — Turn on, start/stop walking, configure action scale, PID, and control frequency
+- **Real-time Charts** — Joint positions, motor targets, IMU gyroscope/accelerometer, feet contacts, and command inputs streamed at 20Hz over TCP
+- **Motor Voltages** — Read all 14 servo voltages via the "Check Voltage" button (uses pypot, works when the robot is idle). Voltages are also automatically checked before and after each walk session
+- **Bluetooth Status** — Monitor connected controller count
+- **Console Log** — Real-time output from the robot's walking process

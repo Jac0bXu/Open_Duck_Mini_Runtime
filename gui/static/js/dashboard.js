@@ -45,6 +45,7 @@ const btnConnect = document.getElementById('btn-connect');
 const btnDisconnect = document.getElementById('btn-disconnect');
 const btnUpload = document.getElementById('btn-upload');
 const btnCheckBt = document.getElementById('btn-check-bt');
+const btnCheckVoltage = document.getElementById('btn-check-voltage');
 const btnTurnOn = document.getElementById('btn-turn-on');
 const btnStart = document.getElementById('btn-start');
 const btnStop = document.getElementById('btn-stop');
@@ -67,6 +68,7 @@ function setConnected(connected) {
     btnDisconnect.disabled = !connected;
     btnUpload.disabled = !connected;
     btnCheckBt.disabled = !connected;
+    btnCheckVoltage.disabled = !connected;
     btnTurnOn.disabled = !connected;
     btnStart.disabled = connected ? false : true;
     selectOnnx.disabled = !connected;
@@ -251,6 +253,24 @@ btnUpload.addEventListener('click', () => {
 // Check Bluetooth
 btnCheckBt.addEventListener('click', checkBluetooth);
 
+// Check Voltage
+btnCheckVoltage.addEventListener('click', () => {
+    btnCheckVoltage.disabled = true;
+    btnCheckVoltage.textContent = 'Reading...';
+    fetch('/api/check-voltage', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                appendLog('Voltage check failed: ' + data.error);
+            }
+        })
+        .catch(e => appendLog('Voltage error: ' + e))
+        .finally(() => {
+            btnCheckVoltage.disabled = false;
+            btnCheckVoltage.textContent = 'Check Voltage';
+        });
+});
+
 // Turn On
 btnTurnOn.addEventListener('click', () => {
     btnTurnOn.disabled = true;
@@ -329,6 +349,10 @@ socket.on('log_data', (data) => {
 
 socket.on('obs_data', (obs) => {
     updateCharts(obs);
+});
+
+socket.on('voltage_data', (data) => {
+    updateVoltageChart(data.voltages);
 });
 
 socket.on('walk_status', (data) => {
