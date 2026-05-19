@@ -130,9 +130,17 @@ pip install lgpio
 python3 mini_bdx_runtime/mini_bdx_runtime/raw_imu.py
 ```
 
-You can also run `python3 scripts/imu_server.py` on the robot and `python3 scripts/imu_client.py --ip <robot_ip>` on your computer to check that the frame is oriented correctly. 
+You can also run `python3 scripts/imu_server.py` on the robot and `python3 scripts/imu_client.py --ip <robot_ip>` on your computer to check that the frame is oriented correctly.
 
 > To find the ip address of the robot, run `ifconfig` on the robot
+
+### Calibrate the IMU
+
+If the IMU is installed upside down:
+
+```bash
+python3 scripts/calibrate_imu.py
+```
 
 ## Test motors
 
@@ -140,6 +148,31 @@ This will allow you to verify all your motors are connected and configured.
 
 ```bash
 python3 scripts/check_motors.py
+```
+
+### Check motor voltages
+
+```bash
+python3 scripts/check_voltage.py
+```
+
+### Motor configuration and calibration
+
+```bash
+# View or set motor parameters (PID, voltage limits, acceleration, etc.)
+python3 scripts/motor_params.py
+
+# Set all motors to their initial standing position
+python3 scripts/motor_init_pos.py
+
+# Set motors to their logical zero position
+python3 scripts/motor_logical_zero.py
+
+# Configure a single motor
+python3 scripts/configure_motor.py
+
+# Configure all motors with default settings
+python3 scripts/configure_all_motors.py
 ```
 
 ## Make your duck_config.json
@@ -169,7 +202,9 @@ Download the [latest policy checkpoint ](https://github.com/apirrone/Open_Duck_M
 
 `python v2_rl_walk_mujoco.py --onnx_model_path <path_to>/BEST_WALK_ONNX_2.onnx`
 
+With real-time data streaming to the GUI dashboard:
 
+`python v2_rl_walk_mujoco.py --onnx_model_path <path_to>/BEST_WALK_ONNX_2.onnx --stream_data --stream_port 5678`
 
 ```
 - The commands are : 
@@ -179,6 +214,37 @@ Download the [latest policy checkpoint ](https://github.com/apirrone/Open_Duck_M
 - Y to turn on/off head control (very experimental, I don't recommend trying that, it can break your duck's head)
 - left and right triggers to control the left and right antennas
 - LB (new!) press and hold to increase the walking frequency, kind of a sprint mode 🙂
+```
+
+### Auto-start walking on controller connection
+
+The robot can automatically start walking when a Bluetooth controller connects:
+
+```bash
+python3 scripts/start_walk_after_controller.py --onnx_model_path <path_to>/BEST_WALK_ONNX_2.onnx
+```
+
+Or as a startup service using the shell script:
+
+```bash
+bash scripts/start_walk_after_controller.sh
+```
+
+### Turn on/off the robot
+
+```bash
+python3 scripts/turn_on.py
+python3 scripts/turn_off.py
+```
+
+### Record and plot data
+
+```bash
+# Record motor/sensor data
+python3 scripts/record_data.py
+
+# Plot recorded data
+python3 scripts/plot_recorded_data.py
 ```
 
 ## GUI Dashboard
@@ -203,3 +269,14 @@ Open http://localhost:5001 in your browser.
 - **Motor Voltages** — Read all 14 servo voltages via the "Check Voltage" button (uses pypot, works when the robot is idle). Voltages are also automatically checked before and after each walk session
 - **Bluetooth Status** — Monitor connected controller count
 - **Console Log** — Real-time output from the robot's walking process
+
+## Other scripts
+
+| Script | Description |
+|--------|-------------|
+| `scripts/head_puppet.py` | Control the robot's head using an Xbox controller |
+| `scripts/antennas_controller_test.py` | Test antenna control via Xbox controller |
+| `scripts/cam_test.py` | Test Raspberry Pi camera capture |
+| `scripts/fc_test.py` | Test Feetech motor connectivity and parameters |
+| `scripts/obs_stream_server.py` | TCP server that streams observation data (used by the GUI dashboard) |
+| `scripts/check_voltage_json.py` | Read motor voltages as JSON (used by the GUI dashboard) |
