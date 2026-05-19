@@ -35,6 +35,8 @@ class RLWalk:
         save_obs=False,
         replay_obs=None,
         cutoff_frequency=None,
+        stream_data=False,
+        stream_port=5678,
     ):
 
         self.duck_config = DuckConfig(config_json_path=duck_config_path)
@@ -100,7 +102,9 @@ class RLWalk:
 
         # Reference motion, but we only really need the length of one phase
         # TODO
-        self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
+        self.PRM = PolyReferenceMotion(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "polynomial_coefficients.pkl")
+        )
         self.imitation_i = 0
         self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
@@ -119,6 +123,14 @@ class RLWalk:
             )
         if self.duck_config.antennas:
             self.antennas = Antennas()
+
+        # Data streaming for GUI
+        self.stream_data = stream_data
+        self.stream_server = None
+        if self.stream_data:
+            from obs_stream_server import ObsStreamServer
+
+            self.stream_server = ObsStreamServer(port=stream_port)
 
     def get_obs(self):
 
@@ -152,6 +164,18 @@ class RLWalk:
         cmds = self.last_commands
 
         feet_contacts = self.feet_contacts.get()
+
+        # Store structured components for data streaming
+        self._obs_components = {
+            "imu": imu_data,
+            "dof_pos_relative": dof_pos - self.init_pos,
+            "dof_vel": dof_vel,
+            "commands": cmds,
+            "feet_contacts": feet_contacts,
+            "motor_targets": self.motor_targets.copy(),
+            "imitation_phase": self.imitation_phase.copy(),
+            "last_action": self.last_action.copy(),
+        }
 
         obs = np.concatenate(
             [
@@ -254,6 +278,14 @@ class RLWalk:
                 if obs is None:
                     continue
 
+                if self.stream_data and self.stream_server is not None:
+                    self.stream_server.push_obs(
+                        {
+                            "timestamp": time.time(),
+                            **self._obs_components,
+                        }
+                    )
+
                 self.imitation_i += 1 * (
                     self.phase_frequency_factor + self.phase_frequency_factor_offset
                 )
@@ -335,6 +367,8 @@ class RLWalk:
             if self.duck_config.projector:
                 self.projector.stop()
             self.feet_contacts.stop()
+            if self.stream_server is not None:
+                self.stream_server.stop = True
 
         if self.save_obs:
             pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
@@ -379,6 +413,18 @@ if __name__ == "__main__":
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
     parser.add_argument("--cutoff_frequency", type=float, default=None)
+    parser.add_argument(
+        "--stream_data",
+        action="store_true",
+        default=False,
+        help="stream observation data over TCP for GUI dashboard",
+    )
+    parser.add_argument(
+        "--stream_port",
+        type=int,
+        default=5678,
+        help="TCP port for observation data streaming (default: 5678)",
+    )
 
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
@@ -395,6 +441,8 @@ if __name__ == "__main__":
         save_obs=args.save_obs,
         replay_obs=args.replay_obs,
         cutoff_frequency=args.cutoff_frequency,
+        stream_data=args.stream_data,
+        stream_port=args.stream_port,
     )
     print("Done instantiating RLWalk")
     rl_walk.run()

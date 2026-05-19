@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Duck Mini Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Open Duck Mini Dashboard</span>
+            <div id="status-badges">
+                <span id="badge-connection" class="badge bg-secondary me-2">Disconnected</span>
+                <span id="badge-walking" class="badge bg-secondary me-2">Idle</span>
+                <span id="badge-controller" class="badge bg-secondary me-2">Controller: --</span>
+                <span id="badge-streaming" class="badge bg-secondary">Stream: Off</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <!-- Left Panel: Controls -->
+            <div class="col-lg-4">
+                <!-- Connection Card -->
+                <div class="card mb-3">
+                    <div class="card-header">Connection</div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <label class="form-label">Robot IP / Hostname</label>
+                            <input type="text" class="form-control form-control-sm" id="input-hostname" list="duck-list" placeholder="192.168.1.100">
+                            <datalist id="duck-list"></datalist>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label class="form-label">User</label>
+                                <input type="text" class="form-control form-control-sm" id="input-username" value="pi">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control form-control-sm" id="input-password">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">Port</label>
+                                <input type="number" class="form-control form-control-sm" id="input-port" value="22">
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-sm flex-fill" id="btn-connect">Connect</button>
+                            <button class="btn btn-outline-secondary btn-sm flex-fill" id="btn-disconnect" disabled>Disconnect</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Policy Card -->
+                <div class="card mb-3">
+                    <div class="card-header">Upload Policy</div>
+                    <div class="card-body">
+                        <input type="file" class="form-control form-control-sm mb-2" id="input-policy-file" accept=".onnx">
+                        <button class="btn btn-primary btn-sm w-100" id="btn-upload" disabled>Upload ONNX</button>
+                        <div id="upload-status" class="mt-2 small text-muted"></div>
+                    </div>
+                </div>
+
+                <!-- Robot Controls Card -->
+                <div class="card mb-3">
+                    <div class="card-header">Robot Controls</div>
+                    <div class="card-body">
+                        <div class="d-flex gap-2 mb-2">
+                            <button class="btn btn-info btn-sm flex-fill" id="btn-check-bt" disabled>Check Bluetooth</button>
+                        </div>
+                        <div class="d-flex gap-2 mb-2">
+                            <button class="btn btn-warning btn-sm flex-fill" id="btn-turn-on" disabled>Turn On</button>
+                        </div>
+                        <hr class="my-2">
+                        <div class="mb-2">
+                            <label class="form-label small">ONNX Policy on Robot</label>
+                            <select class="form-select form-select-sm" id="select-onnx" disabled>
+                                <option value="">Connect to load files...</option>
+                            </select>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label class="form-label small">Action Scale</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="input-action-scale" value="0.25">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small">P</label>
+                                <input type="number" class="form-control form-control-sm" id="input-p" value="30">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small">Freq</label>
+                                <input type="number" class="form-control form-control-sm" id="input-freq" value="50">
+                            </div>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="check-stream" checked>
+                            <label class="form-check-label small" for="check-stream">Stream Data (real-time charts)</label>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success btn-sm flex-fill" id="btn-start" disabled>Start Walk</button>
+                            <button class="btn btn-danger btn-sm flex-fill" id="btn-stop" disabled>Stop Walk</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Console Log Card -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        Console
+                        <button class="btn btn-outline-secondary btn-sm" id="btn-clear-log">Clear</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="console-log" class="console-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Charts -->
+            <div class="col-lg-8">
+                <div class="row">
+                    <!-- Joint Positions -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card chart-card">
+                            <div class="card-header">Joint Positions (relative to init)</div>
+                            <div class="card-body">
+                                <canvas id="chart-joints"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Motor Targets -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card chart-card">
+                            <div class="card-header">Motor Targets</div>
+                            <div class="card-body">
+                                <canvas id="chart-targets"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- IMU Data -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card chart-card">
+                            <div class="card-header">IMU - Gyroscope</div>
+                            <div class="card-body">
+                                <canvas id="chart-gyro"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- IMU Accelero -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card chart-card">
+                            <div class="card-header">IMU - Accelerometer</div>
+                            <div class="card-body">
+                                <canvas id="chart-accel"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Feet Contacts + Commands -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card chart-card">
+                            <div class="card-header">Feet Contacts</div>
+                            <div class="card-body d-flex align-items-center justify-content-around" style="height: 160px">
+                                <div class="text-center">
+                                    <div id="contact-left" class="contact-indicator contact-off"></div>
+                                    <div class="mt-1 small">Left</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="contact-right" class="contact-indicator contact-off"></div>
+                                    <div class="mt-1 small">Right</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Commands -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card chart-card">
+                            <div class="card-header">Commands</div>
+                            <div class="card-body">
+                                <div class="row g-1" id="command-displays">
+                                    <div class="col-4 mb-1"><div class="cmd-box"><span class="cmd-label">Vel X</span><span class="cmd-value" id="cmd-0">0.00</span></div></div>
+                                    <div class="col-4 mb-1"><div class="cmd-box"><span class="cmd-label">Vel Y</span><span class="cmd-value" id="cmd-1">0.00</span></div></div>
+                                    <div class="col-4 mb-1"><div class="cmd-box"><span class="cmd-label">Ang Vel</span><span class="cmd-value" id="cmd-2">0.00</span></div></div>
+                                    <div class="col-4"><div class="cmd-box"><span class="cmd-label">Neck P</span><span class="cmd-value" id="cmd-3">0.00</span></div></div>
+                                    <div class="col-4"><div class="cmd-box"><span class="cmd-label">Head P</span><span class="cmd-value" id="cmd-4">0.00</span></div></div>
+                                    <div class="col-4"><div class="cmd-box"><span class="cmd-label">Head Y</span><span class="cmd-value" id="cmd-5">0.00</span></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
