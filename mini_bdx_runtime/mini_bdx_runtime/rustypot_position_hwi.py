@@ -88,17 +88,17 @@ class HWI:
         self.io.set_kps([id], [kp])
 
     def turn_on(self):
-        self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
-        print("turn on : low KPS set")
-        time.sleep(1)
+#        self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
+#       print("turn on : low KPS set")
+#        time.sleep(1)
 
         self.set_position_all(self.init_pos)
         print("turn on : init pos set")
 
-        time.sleep(1)
-
-        self.io.set_kps(list(self.joints.values()), self.kps)
-        print("turn on : high kps")
+#        time.sleep(1)
+#
+#        self.io.set_kps(list(self.joints.values()), self.kps)
+#        print("turn on : high kps")
 
     def turn_off(self):
         self.io.disable_torque(list(self.joints.values()))

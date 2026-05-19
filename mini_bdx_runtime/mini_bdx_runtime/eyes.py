@@ -6,7 +6,7 @@ from threading import Thread, Event
 
 LEFT_EYE_PIN = board.D24
 RIGHT_EYE_PIN = board.D23
-
+#DIRECTOR_PIN = board.D25
 
 class Eyes:
     def __init__(self, blink_duration=0.1, min_interval=1.0, max_interval=4.0):
@@ -15,6 +15,9 @@ class Eyes:
 
         self.right_eye = digitalio.DigitalInOut(RIGHT_EYE_PIN)
         self.right_eye.direction = digitalio.Direction.OUTPUT
+
+#        self.director = digitalio.DigitalInOut(DIRECTOR_PIN)
+#        self.director.direction = digitalio.Direction.OUTPUT
 
         self.blink_duration = blink_duration
         self.min_interval = min_interval
@@ -27,6 +30,7 @@ class Eyes:
     def _set_eyes(self, state):
         self.left_eye.value = state
         self.right_eye.value = state
+#        self.director.value = state
 
     def run(self):
         try:
@@ -46,6 +50,7 @@ class Eyes:
         self._set_eyes(False)
         self.left_eye.deinit()
         self.right_eye.deinit()
+#        self.director.deinit()
 
 
 if __name__ == "__main__":

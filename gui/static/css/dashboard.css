@@ -1,0 +1,101 @@
+body {
+    background-color: #1a1d23;
+    color: #dee2e6;
+}
+
+.card {
+    background-color: #2b3035;
+    border-color: #444;
+}
+
+.card-header {
+    background-color: #343a40;
+    color: #dee2e6;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.form-control {
+    background-color: #1a1d23;
+    border-color: #555;
+    color: #dee2e6;
+}
+
+.form-control:focus {
+    background-color: #1a1d23;
+    color: #dee2e6;
+    border-color: #6ea8fe;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+}
+
+.chart-card .card-body {
+    padding: 0.5rem;
+    height: 220px;
+}
+
+.chart-card canvas {
+    width: 100% !important;
+    height: 200px !important;
+}
+
+.console-log {
+    height: 200px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    background-color: #111;
+    color: #0f0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.contact-indicator {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    transition: background-color 0.15s;
+}
+
+.contact-on {
+    background-color: #28a745;
+    box-shadow: 0 0 12px #28a745aa;
+}
+
+.contact-off {
+    background-color: #6c757d;
+}
+
+.cmd-box {
+    background-color: #1a1d23;
+    border-radius: 6px;
+    padding: 6px 8px;
+    text-align: center;
+}
+
+.cmd-label {
+    display: block;
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.cmd-value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #6ea8fe;
+    font-family: 'Menlo', monospace;
+}
+
+.btn-sm {
+    font-size: 0.8rem;
+}
+
+.badge {
+    font-size: 0.7rem;
+}
